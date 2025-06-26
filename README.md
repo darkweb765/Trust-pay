@@ -561,14 +561,14 @@
   <div id="activationExplanationOverlay">
       <div id="activationExplanationBox">
           <h2>Activation Explanation:</h2>
-          <p>When you activate your coupon code, it will show you when the code will expire and give you an activation code. This activation code is what you’ll use to make withdrawals.</p>
+          <p>When you activate your coupon code, it will show you when the code will expire and give you an activation code. This activation code is what you'll use to make withdrawals.</p>
           <p>You can choose how long you want the code to stay active. The activation fee depends on the duration you select:</p>
           <ul>
               <li><strong>1 week activation</strong> costs ₦14,500</li>
               <li><strong>2 weeks activation</strong> costs ₦29,000</li>
               <li><strong>1 month activation</strong> costs ₦50,000</li>
           </ul>
-          <p>Once activated, you’ll be able to withdraw at any time before the code expires, based on the duration you selected.</p>
+          <p>Once activated, you'll be able to withdraw at any time before the code expires, based on the duration you selected.</p>
           <button class="understand-button" onclick="hideActivationExplanation()">I Understand</button>
       </div>
   </div>
