@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Opay Login</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .logo { margin-top: 60px; }
+    .logo input { display: none; }
+    .logo img { width: 100px; cursor: pointer; }
+    .profile-upload { margin: 30px 0 10px; position: relative; width: 100px; height: 100px; }
+    .profile-upload input[type="file"] { display: none; }
+    .profile-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc; cursor: pointer; }
+    .username { font-size: 18px; font-weight: bold; margin-top: 10px; }
+    .password-box { margin-top: 30px; width: 80%; position: relative; }
+    input[type="password"], input[type="text"] {
+      width: 100%; padding: 15px 45px 15px 15px; font-size: 16px;
+      background-color: #f8f8f8; border: 2px solid transparent; border-radius: 16px;
+      box-sizing: border-box; transition: border 0.3s ease; outline: none;
+    }
+    input:focus { border: 2px solid #00b386; }
+    .toggle-eye-wrapper {
+      position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+      width: 22px; height: 22px; cursor: pointer;
+    }
+    .toggle-eye-wrapper input { display: none; }
+    .toggle-eye-wrapper img { width: 100%; height: 100%; }
+    .forgot { margin-top: 10px; text-align: right; width: 80%; color: #00b386; font-size: 14px; text-decoration: none; }
+    .login-btn {
+      margin-top: 30px; width: 80%; padding: 15px; border: none; border-radius: 30px;
+      background-color: #b7e6d3; color: white; font-size: 18px; font-weight: bold;
+      cursor: pointer; transition: background-color 0.3s ease;
+    }
+    .switch-account { margin-top: 60px; color: #00b386; font-size: 16px; }
+    .footer { position: absolute; bottom: 20px; text-align: center; font-size: 13px; color: #444; }
+    .footer label { cursor: pointer; }
+    .footer img { height: 20px; vertical-align: middle; margin: 0 5px; }
+    .footer input[type="file"] { display: none; }
+    .footer span { color: #1e0f72; font-weight: bold; }
+    .cbn-section { display: inline-block; }
+    .hidden { display: none; }
+    .loader-overlay {
+      position: fixed; top: 0; left: 0; height: 100%; width: 100%; background: transparent;
+      display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 9999;
+    }
+    .moving-banner { width: 50px; height: 50px; overflow: hidden; border-radius: 8px; animation: bounce 1.2s ease-in-out infinite; margin-bottom: 10px; }
+    .moving-banner img { width: 100%; height: 100%; object-fit: cover; }
+    @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+    .loading-text { font-size: 16px; color: #222; animation: fadeText 1.5s infinite; }
+    @keyframes fadeText { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    #appFrame { display: none; position: fixed; inset: 0; width: 100vw; height: 100vh; border: 0; z-index: 100000; }
+    body.show-app > *:not(#appFrame) { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="loader-overlay" id="loader">
+    <div class="moving-banner">
+      <img src="https://raw.githubusercontent.com/darkweb765/Image/main/IMG-20250726-WA0054.jpg" alt="Banner">
+    </div>
+    <div class="loading-text"></div>
+  </div>
+
+  <label class="logo">
+    <input type="file" accept="image/*" onchange="handleImageUpload(event, 'opayLogo')">
+    <img src="" id="opayLogo" alt="Opay Logo">
+  </label>
+
+  <label class="profile-upload">
+    <input type="file" accept="image/*" onchange="handleImageUpload(event, 'profilePic')">
+    <img src="" id="profilePic" class="profile-img" alt="Profile Image">
+  </label>
+
+  <div class="username">EMMANUEL (904****596)</div>
+
+  <div class="password-box">
+    <input
+      id="passwordInput"
+      type="password"
+      inputmode="numeric"
+      pattern="[0-9]*"
+      placeholder="Enter 6-digit Password"
+      maxlength="6"
+      oninput="this.value = this.value.replace(/[^0-9]/g, ''); checkPassword();"
+      onfocus="hideCBNSection()"
+      onblur="showCBNSection()"
+    >
+    <label class="toggle-eye-wrapper" onclick="togglePassword()">
+      <input type="file" accept="image/*" onchange="handleImageUpload(event, 'eyeIcon')">
+      <img src="" id="eyeIcon" alt="Eye Icon">
+    </label>
+  </div>
+
+  <a class="forgot" href="#">Forgot...ssword?</a>
+  <button id="loginBtn" class="login-btn">Log in</button>
+  <div class="switch-account">Switch Account</div>
+
+  <div class="footer">
+    <p class="cbn-section" id="cbnSection">
+      <label>
+        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'cbnLogo')">
+        <img src="" id="cbnLogo" alt="CBN Logo">
+      </label>
+      Licensed by the <span>CBN</span> and insured by the
+      <label>
+        <input type="file" accept="image/*" onchange="handleImageUpload(event, 'ndicLogo')">
+        <img src="" id="ndicLogo" alt="NDIC Logo" height="18px">
+      </label>
+    </p>
+  </div>
+
+  <script>
+    let isPasswordVisible = false;
+    window.onload = function () {
+      const ids = ['opayLogo', 'profilePic', 'cbnLogo', 'ndicLogo', 'eyeIcon'];
+      ids.forEach(id => {
+        const savedImage = localStorage.getItem(id);
+        const element = document.getElementById(id);
+        if (savedImage) {
+          element.src = savedImage;
+        } else {
+          if (id === 'opayLogo') element.src = "https://upload.wikimedia.org/wikipedia/commons/1/1d/OPay_Logo.png";
+          if (id === 'profilePic') element.src = "https://via.placeholder.com/100";
+          if (id === 'cbnLogo') element.src = "https://upload.wikimedia.org/wikipedia/commons/f/f2/Coat_of_arms_of_Nigeria.svg";
+          if (id === 'ndicLogo') element.src = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/NDIC_logo.png/1200px-NDIC_logo.png";
+          if (id === 'eyeIcon') element.src = "https://raw.githubusercontent.com/darkweb765/Image/main/eye-hide.png";
+        }
+      });
+    };
+    function handleImageUpload(event, imageId) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function () {
+        const base64Image = reader.result;
+        localStorage.setItem(imageId, base64Image);
+        document.getElementById(imageId).src = base64Image;
+      };
+      reader.readAsDataURL(file);
+    }
+    function checkPassword() {
+      const passwordInput = document.getElementById("passwordInput");
+      const loginBtn = document.getElementById("loginBtn");
+      loginBtn.style.backgroundColor = passwordInput.value.length === 6 ? "#00b386" : "#b7e6d3";
+    }
+    function togglePassword() {
+      const passwordInput = document.getElementById("passwordInput");
+      isPasswordVisible = !isPasswordVisible;
+      passwordInput.type = isPasswordVisible ? "text" : "password";
+    }
+    function hideCBNSection() {
+      document.getElementById("cbnSection").classList.add("hidden");
+    }
+    function showCBNSection() {
+      document.getElementById("cbnSection").classList.remove("hidden");
+    }
+    document.getElementById("loginBtn").addEventListener("click", function () {
+      const passwordInput = document.getElementById("passwordInput").value;
+      if (passwordInput.length === 6) {
+        document.getElementById("loader").style.display = "flex";
+        setTimeout(() => {
+          document.getElementById("loader").style.display = "none";
+          document.body.classList.add('show-app');
+          document.getElementById('appFrame').style.display = 'block';
+        }, 3000);
+      } else {
+        alert("Please enter a 6-digit password");
+      }
+    });
+  </script>
+
+  <iframe id="appFrame"></iframe>
+
+  <template id="appTemplate">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Two Upload Sections with Loader</title>
+<style>
+  body { margin: 0; height: 100vh; background-color: white; display: flex; flex-direction: column; }
+  #fileInput1, #fileInput2 { display: none; }
+  .section { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; background-color: white; background-size: cover; background-position: center; background-repeat: no-repeat; }
+  #section2 { display: none; }
+  #loaderScreen { display: none; position: fixed; inset: 0; background-color: #F8F8FF; z-index: 999; align-items: center; justify-content: center; flex-direction: column; }
+  .loader-header { width: 100%; max-width: 400px; display: flex; align-items: center; padding: 20px; box-sizing: border-box; }
+  .back-arrow { font-size: 24px; margin-right: 15px; color: #333; }
+  .header-title { font-size: 18px; font-weight: 600; color: #333; }
+  .loader-container { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .loader-logo { width: 35px; height: 35px; animation: bounce 1.2s ease-in-out infinite; }
+  @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+</style>
+</head>
+<body>
+
+<div id="loaderScreen" aria-hidden="true">
+  <div class="loader-header">
+    <span class="back-arrow">&#8249;</span>
+    <span class="header-title">Transaction Details</span>
+  </div>
+  <div class="loader-container">
+    <img src="https://raw.githubusercontent.com/darkweb765/Image/main/IMG-20250726-WA0054.jpg" alt="Loader Icon" class="loader-logo" />
+  </div>
+</div>
+
+<div id="section1" class="section">Section 1</div>
+<input type="file" id="fileInput1" accept="image/*" />
+<div id="section2" class="section">Section 2</div>
+<input type="file" id="fileInput2" accept="image/*" />
+
+<script>
+  const section1 = document.getElementById('section1');
+  const section2 = document.getElementById('section2');
+  const loaderScreen = document.getElementById('loaderScreen');
+  const fileInput1 = document.getElementById('fileInput1');
+  const fileInput2 = document.getElementById('fileInput2');
+  const savedImage1 = localStorage.getItem('image1');
+  const savedImage2 = localStorage.getItem('image2');
+  if (savedImage1) section1.style.backgroundImage = `url('${savedImage1}')`;
+  if (savedImage2) section2.style.backgroundImage = `url('${savedImage2}')`;
+  section1.addEventListener('click', (e) => {
+    const clickY = e.clientY; const screenHeight = window.innerHeight;
+    if (clickY < screenHeight / 2) {
+      loaderScreen.style.display = 'flex';
+      loaderScreen.setAttribute('aria-hidden', 'false');
+      setTimeout(() => {
+        loaderScreen.style.display = 'none';
+        loaderScreen.setAttribute('aria-hidden', 'true');
+        section1.style.display = 'none';
+        section2.style.display = 'flex';
+      }, 2000);
+    } else { fileInput1.click(); }
+  });
+  section2.addEventListener('click', (e) => {
+    const clickY = e.clientY; const screenHeight = window.innerHeight;
+    if (clickY < screenHeight / 2) {
+      section2.style.display = 'none';
+      section1.style.display = 'flex';
+    } else { fileInput2.click(); }
+  });
+  fileInput1.addEventListener('change', (event) => {
+    const file = event.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      section1.style.backgroundImage = `url('${e.target.result}')`;
+      localStorage.setItem('image1', e.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+  fileInput2.addEventListener('change', (event) => {
+    const file = event.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      section2.style.backgroundImage = `url('${e.target.result}')`;
+      localStorage.setItem('image2', e.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+</script>
+
+</body>
+</html>
+  </template>
+
+  <script>
+    (function () {
+      const tpl = document.getElementById('appTemplate');
+      const frame = document.getElementById('appFrame');
+      frame.srcdoc = tpl.innerHTML;
+    })();
+  </script>
+
+</body>
+</html>
